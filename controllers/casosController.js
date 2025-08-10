@@ -26,37 +26,7 @@ async function getAllCasos(req, res, next) {
         }
 
         const parsedId = agente_id !== undefined ? Number(agente_id) : undefined;
-        if (parsedId && status && q) {
-            casos = await casosRepository.findByAgenteId(parsedId);
-            casos = casos.filter(caso => caso.status.toLowerCase() === status.toLowerCase());
-            casos = casos.filter(caso => 
-                caso.titulo.toLowerCase().includes(q.toLowerCase()) || 
-                caso.descricao.toLowerCase().includes(q.toLowerCase())
-            );
-        } else if (parsedId && status) {
-            casos = await casosRepository.findByAgenteId(parsedId);
-            casos = casos.filter(caso => caso.status.toLowerCase() === status.toLowerCase());
-        } else if (parsedId && q) {
-            casos = await casosRepository.findByAgenteId(parsedId);
-            casos = casos.filter(caso => 
-                caso.titulo.toLowerCase().includes(q.toLowerCase()) || 
-                caso.descricao.toLowerCase().includes(q.toLowerCase())
-            );
-        } else if (status && q) {
-            casos = await casosRepository.findByStatus(status);
-            casos = casos.filter(caso => 
-                caso.titulo.toLowerCase().includes(q.toLowerCase()) || 
-                caso.descricao.toLowerCase().includes(q.toLowerCase())
-            );
-        } else if (parsedId) {
-            casos = await casosRepository.findByAgenteId(parsedId);
-        } else if (status) {
-            casos = await casosRepository.findByStatus(status);
-        } else if (q) {
-            casos = await casosRepository.search(q);
-        } else {
-            casos = await casosRepository.findAll();
-        }
+        casos = await casosRepository.findWithFilters({ agente_id: parsedId, status, q });
 
         res.status(200).json(casos);
     } catch (error) {

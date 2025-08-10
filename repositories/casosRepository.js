@@ -33,7 +33,7 @@ async function findByAgenteId(agente_id) {
 }
 
 async function findByStatus(status) {
-  return db('casos').whereRaw('LOWER(status) = LOWER(?)', [status]);
+  return db('casos').where({ status: String(status).toLowerCase() });
 }
 
 async function search(query) {
@@ -41,6 +41,27 @@ async function search(query) {
   return db('casos')
     .whereILike('titulo', like)
     .orWhereILike('descricao', like);
+}
+
+function queryBase() {
+  return db('casos');
+}
+
+async function findWithFilters({ agente_id, status, q }) {
+  let query = queryBase();
+  if (agente_id) {
+    query = query.where('agente_id', agente_id);
+  }
+  if (status) {
+    query = query.where({ status: String(status).toLowerCase() });
+  }
+  if (q) {
+    const like = `%${q}%`;
+    query = query.andWhere(function () {
+      this.whereILike('titulo', like).orWhereILike('descricao', like);
+    });
+  }
+  return query.select('*');
 }
 
 module.exports = {
@@ -53,4 +74,6 @@ module.exports = {
   findByAgenteId,
   findByStatus,
   search,
+  queryBase,
+  findWithFilters,
 };
