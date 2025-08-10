@@ -1,7 +1,8 @@
 const agentesRepository = require('../repositories/agentesRepository');
-const { createValidationError, validateDateFormat } = require('../utils/errorHandler');
+const { createValidationError, validateDateFormat, createNotFoundError } = require('../utils/errorHandler');
 const { validateAgenteData } = require('../utils/validators');
 const { handleCreate, handleUpdate, handlePatch, handleGetById, handleDelete } = require('../utils/controllerHelpers');
+const casosRepository = require('../repositories/casosRepository');
 
 async function getAllAgentes(req, res, next) {
     try {
@@ -27,13 +28,8 @@ async function getAllAgentes(req, res, next) {
         }
 
         if (cargo && sort) {
-            agentes = await agentesRepository.findByCargo(cargo);
             const order = sort.startsWith('-') ? 'desc' : 'asc';
-            agentes = agentes.sort((a, b) => {
-                const dateA = new Date(a.dataDeIncorporacao);
-                const dateB = new Date(b.dataDeIncorporacao);
-                return order === 'desc' ? dateB - dateA : dateA - dateB;
-            });
+            agentes = await agentesRepository.findByCargoSorted(cargo, order);
         } else if (cargo) {
             agentes = await agentesRepository.findByCargo(cargo);
         } else if (sort) {
@@ -106,5 +102,24 @@ module.exports = {
     createAgente,
     updateAgente,
     patchAgente,
-    deleteAgente
-}; 
+    deleteAgente,
+    getCasosByAgente,
+};
+
+async function getCasosByAgente(req, res, next) {
+    try {
+        const { id } = req.params;
+        const parsed = Number(id);
+        if (!Number.isInteger(parsed) || parsed <= 0) {
+            return next(createValidationError('Parâmetros inválidos', { id: 'id deve ser um inteiro positivo' }));
+        }
+        const agente = await agentesRepository.findById(parsed);
+        if (!agente) {
+            throw createNotFoundError('Agente não encontrado');
+        }
+        const casos = await casosRepository.findByAgenteId(parsed);
+        res.status(200).json(casos);
+    } catch (error) {
+        next(error);
+    }
+}

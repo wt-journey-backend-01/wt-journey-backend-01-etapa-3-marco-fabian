@@ -37,6 +37,13 @@ async function findAllSorted(order = 'asc') {
   return db('agentes').select('*').orderBy('dataDeIncorporacao', direction);
 }
 
+async function findByCargoSorted(cargo, order = 'asc') {
+  const direction = order === 'desc' ? 'desc' : 'asc';
+  return db('agentes')
+    .whereRaw('LOWER(cargo) = LOWER(?)', [cargo])
+    .orderBy('dataDeIncorporacao', direction);
+}
+
 module.exports = {
   findAll,
   findById,
@@ -46,4 +53,5 @@ module.exports = {
   deleteById,
   findByCargo,
   findAllSorted,
+  findByCargoSorted,
 };

@@ -35,6 +35,11 @@ async function getAllCasos(req, res, next) {
 }
 
 function getCasoById(req, res, next) {
+    const { id } = req.params;
+    const parsed = Number(id);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+        return next(createValidationError('Parâmetros inválidos', { id: 'id deve ser um inteiro positivo' }));
+    }
     handleGetById(casosRepository, 'Caso', req, res, next);
 }
 
@@ -61,6 +66,7 @@ async function getAgenteFromCaso(req, res, next) {
 
 function createCaso(req, res, next) {
     const validateCreate = async (dados) => {
+        if (dados.status) dados.status = String(dados.status).toLowerCase();
         await validateCasoData(dados, agentesRepository, false);
     };
     handleCreate(casosRepository, validateCreate, req, res, next);
@@ -68,6 +74,7 @@ function createCaso(req, res, next) {
 
 function updateCaso(req, res, next) {
     const validateWithAgentes = async (dados, isUpdate) => {
+        if (dados.status) dados.status = String(dados.status).toLowerCase();
         await validateCasoData(dados, agentesRepository, isUpdate);
     };
     handleUpdate(casosRepository, validateWithAgentes, req, res, next);
@@ -77,6 +84,7 @@ function patchCaso(req, res, next) {
     const validatePatch = async (dados) => {
         const errors = {};
         if (dados.status) {
+            dados.status = String(dados.status).toLowerCase();
             const statusError = validateCasoStatus(dados.status);
             if (statusError) {
                 errors.status = statusError;
