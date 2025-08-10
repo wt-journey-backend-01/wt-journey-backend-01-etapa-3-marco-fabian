@@ -1,4 +1,4 @@
-const { createNotFoundError } = require('./errorHandler');
+const { createNotFoundError, createValidationError } = require('./errorHandler');
 
 async function handleCreate(repository, validateFn, req, res, next) {
   try {
@@ -16,6 +16,9 @@ async function handleUpdate(repository, validateFn, req, res, next) {
   try {
     const { id } = req.params;
     const dados = req.body;
+    if (Object.prototype.hasOwnProperty.call(dados, 'id')) {
+      throw createValidationError('Campo proibido', { id: 'Não é permitido alterar o campo id' });
+    }
     const existingItem = await repository.findById(id);
     if (!existingItem) {
       throw createNotFoundError(getNotFoundMessage(repository.name));
@@ -33,6 +36,9 @@ async function handlePatch(repository, validateFn, req, res, next) {
   try {
     const { id } = req.params;
     const dados = req.body;
+    if (Object.prototype.hasOwnProperty.call(dados, 'id')) {
+      throw createValidationError('Campo proibido', { id: 'Não é permitido alterar o campo id' });
+    }
     const existingItem = await repository.findById(id);
     if (!existingItem) {
       throw createNotFoundError(getNotFoundMessage(repository.name));

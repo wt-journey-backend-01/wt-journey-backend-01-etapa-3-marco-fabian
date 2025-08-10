@@ -46,6 +46,11 @@ async function getAllAgentes(req, res, next) {
 }
 
 function getAgenteById(req, res, next) {
+    const { id } = req.params;
+    const parsed = Number(id);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+        return next(createValidationError('Parâmetros inválidos', { id: 'id deve ser um inteiro positivo' }));
+    }
     handleGetById(agentesRepository, 'Agente', req, res, next);
 }
 
@@ -58,10 +63,20 @@ function createAgente(req, res, next) {
 }
 
 function updateAgente(req, res, next) {
+    const { id } = req.params;
+    const parsed = Number(id);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+        return next(createValidationError('Parâmetros inválidos', { id: 'id deve ser um inteiro positivo' }));
+    }
     handleUpdate(agentesRepository, validateAgenteData, req, res, next);
 }
 
 function patchAgente(req, res, next) {
+    const { id } = req.params;
+    const parsed = Number(id);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+        return next(createValidationError('Parâmetros inválidos', { id: 'id deve ser um inteiro positivo' }));
+    }
     const validatePatch = (dados) => {
         const errors = {};
         
@@ -93,6 +108,11 @@ function patchAgente(req, res, next) {
 }
 
 function deleteAgente(req, res, next) {
+    const { id } = req.params;
+    const parsed = Number(id);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+        return next(createValidationError('Parâmetros inválidos', { id: 'id deve ser um inteiro positivo' }));
+    }
     handleDelete(agentesRepository, 'Agente', req, res, next);
 }
 

@@ -91,6 +91,63 @@ const options = {
                     }
                 }
             }
+        },
+        paths: {
+            '/agentes/{id}/casos': {
+                get: {
+                    summary: 'Lista os casos atribuídos a um agente',
+                    parameters: [
+                        {
+                            name: 'id',
+                            in: 'path',
+                            required: true,
+                            schema: { type: 'integer' },
+                            description: 'ID do agente'
+                        }
+                    ],
+                    responses: {
+                        200: {
+                            description: 'Lista de casos',
+                            content: {
+                                'application/json': {
+                                    schema: {
+                                        type: 'array',
+                                        items: { $ref: '#/components/schemas/Caso' }
+                                    }
+                                }
+                            }
+                        },
+                        400: { $ref: '#/components/schemas/Error' },
+                        404: { $ref: '#/components/schemas/Error' }
+                    }
+                }
+            },
+            '/casos/{caso_id}/agente': {
+                get: {
+                    summary: 'Retorna o agente responsável por um caso',
+                    parameters: [
+                        {
+                            name: 'caso_id',
+                            in: 'path',
+                            required: true,
+                            schema: { type: 'integer' },
+                            description: 'ID do caso'
+                        }
+                    ],
+                    responses: {
+                        200: {
+                            description: 'Agente responsável',
+                            content: {
+                                'application/json': {
+                                    schema: { $ref: '#/components/schemas/Agente' }
+                                }
+                            }
+                        },
+                        400: { $ref: '#/components/schemas/Error' },
+                        404: { $ref: '#/components/schemas/Error' }
+                    }
+                }
+            }
         }
     },
     apis: ['./routes/*.js', './controllers/*.js']
