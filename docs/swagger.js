@@ -147,6 +147,27 @@ const options = {
                         404: { $ref: '#/components/schemas/Error' }
                     }
                 }
+            },
+            '/agentes': {
+                get: {
+                    summary: 'Lista agentes com filtros opcionais',
+                    parameters: [
+                        { name: 'cargo', in: 'query', schema: { type: 'string', enum: ['inspetor', 'delegado'] }, description: 'Filtra por cargo' },
+                        { name: 'sort', in: 'query', schema: { type: 'string', enum: ['dataDeIncorporacao', '-dataDeIncorporacao'] }, description: 'Ordena por data de incorporação' }
+                    ],
+                    responses: { 200: { description: 'Lista de agentes' } }
+                }
+            },
+            '/casos': {
+                get: {
+                    summary: 'Lista casos com filtros opcionais',
+                    parameters: [
+                        { name: 'status', in: 'query', schema: { type: 'string', enum: ['aberto', 'solucionado'] }, description: 'Filtra por status' },
+                        { name: 'agente_id', in: 'query', schema: { type: 'integer' }, description: 'Filtra por agente responsável' },
+                        { name: 'q', in: 'query', schema: { type: 'string' }, description: 'Busca por título/descrição' }
+                    ],
+                    responses: { 200: { description: 'Lista de casos' } }
+                }
             }
         }
     },

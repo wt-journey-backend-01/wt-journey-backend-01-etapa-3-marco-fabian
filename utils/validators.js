@@ -2,6 +2,9 @@ const { createValidationError, createNotFoundError, validateRequiredFields, vali
 
 function validateAgenteData(dados, isUpdate = false) {
     const errors = {};
+    if (Object.prototype.hasOwnProperty.call(dados, 'id')) {
+        throw createValidationError('Campo proibido', { id: 'Não é permitido alterar o campo id' });
+    }
     
     const requiredFields = ['nome', 'dataDeIncorporacao', 'cargo'];
     const validationErrors = validateRequiredFields(dados, requiredFields);
@@ -36,6 +39,9 @@ function validateAgenteData(dados, isUpdate = false) {
 
 async function validateCasoData(dados, agentesRepository, isUpdate = false) {
     const errors = {};
+    if (Object.prototype.hasOwnProperty.call(dados, 'id')) {
+        throw createValidationError('Campo proibido', { id: 'Não é permitido alterar o campo id' });
+    }
     
     const requiredFields = ['titulo', 'descricao', 'status', 'agente_id'];
     const validationErrors = validateRequiredFields(dados, requiredFields);

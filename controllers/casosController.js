@@ -73,6 +73,11 @@ function createCaso(req, res, next) {
 }
 
 function updateCaso(req, res, next) {
+    const { id } = req.params;
+    const parsed = Number(id);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+        return next(createValidationError('Parâmetros inválidos', { id: 'id deve ser um inteiro positivo' }));
+    }
     const validateWithAgentes = async (dados, isUpdate) => {
         if (dados.status) dados.status = String(dados.status).toLowerCase();
         await validateCasoData(dados, agentesRepository, isUpdate);
@@ -81,6 +86,11 @@ function updateCaso(req, res, next) {
 }
 
 function patchCaso(req, res, next) {
+    const { id } = req.params;
+    const parsedPathId = Number(id);
+    if (!Number.isInteger(parsedPathId) || parsedPathId <= 0) {
+        return next(createValidationError('Parâmetros inválidos', { id: 'id deve ser um inteiro positivo' }));
+    }
     const validatePatch = async (dados) => {
         const errors = {};
         if (dados.status) {
@@ -109,6 +119,11 @@ function patchCaso(req, res, next) {
 }
 
 function deleteCaso(req, res, next) {
+    const { id } = req.params;
+    const parsed = Number(id);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+        return next(createValidationError('Parâmetros inválidos', { id: 'id deve ser um inteiro positivo' }));
+    }
     handleDelete(casosRepository, 'Caso', req, res, next);
 }
 
