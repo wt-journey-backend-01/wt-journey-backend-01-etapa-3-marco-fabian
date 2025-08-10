@@ -1,17 +1,18 @@
 const casosRepository = require('../repositories/casosRepository');
 const agentesRepository = require('../repositories/agentesRepository');
-const { createValidationError, createNotFoundError, validateUUID, validateCasoStatus } = require('../utils/errorHandler');
+const { createValidationError, createNotFoundError, validateCasoStatus } = require('../utils/errorHandler');
 const { validateCasoData } = require('../utils/validators');
 const { handleCreate, handleUpdate, handlePatch, handleGetById, handleDelete } = require('../utils/controllerHelpers');
 
-function getAllCasos(req, res, next) {
+async function getAllCasos(req, res, next) {
     try {
         const { agente_id, status, q } = req.query;
         let casos;
 
-        if (agente_id) {
-            if (!validateUUID(agente_id)) {
-                throw createValidationError('Parâmetros inválidos', { agente_id: 'agente_id deve ser um UUID válido' });
+        if (agente_id !== undefined) {
+            const parsed = Number(agente_id);
+            if (!Number.isInteger(parsed) || parsed <= 0) {
+                throw createValidationError('Parâmetros inválidos', { agente_id: 'agente_id deve ser um inteiro positivo' });
             }
         }
 
@@ -24,36 +25,37 @@ function getAllCasos(req, res, next) {
             }
         }
 
-        if (agente_id && status && q) {
-            casos = casosRepository.findByAgenteId(agente_id);
+        const parsedId = agente_id !== undefined ? Number(agente_id) : undefined;
+        if (parsedId && status && q) {
+            casos = await casosRepository.findByAgenteId(parsedId);
             casos = casos.filter(caso => caso.status.toLowerCase() === status.toLowerCase());
             casos = casos.filter(caso => 
                 caso.titulo.toLowerCase().includes(q.toLowerCase()) || 
                 caso.descricao.toLowerCase().includes(q.toLowerCase())
             );
-        } else if (agente_id && status) {
-            casos = casosRepository.findByAgenteId(agente_id);
+        } else if (parsedId && status) {
+            casos = await casosRepository.findByAgenteId(parsedId);
             casos = casos.filter(caso => caso.status.toLowerCase() === status.toLowerCase());
-        } else if (agente_id && q) {
-            casos = casosRepository.findByAgenteId(agente_id);
+        } else if (parsedId && q) {
+            casos = await casosRepository.findByAgenteId(parsedId);
             casos = casos.filter(caso => 
                 caso.titulo.toLowerCase().includes(q.toLowerCase()) || 
                 caso.descricao.toLowerCase().includes(q.toLowerCase())
             );
         } else if (status && q) {
-            casos = casosRepository.findByStatus(status);
+            casos = await casosRepository.findByStatus(status);
             casos = casos.filter(caso => 
                 caso.titulo.toLowerCase().includes(q.toLowerCase()) || 
                 caso.descricao.toLowerCase().includes(q.toLowerCase())
             );
-        } else if (agente_id) {
-            casos = casosRepository.findByAgenteId(agente_id);
+        } else if (parsedId) {
+            casos = await casosRepository.findByAgenteId(parsedId);
         } else if (status) {
-            casos = casosRepository.findByStatus(status);
+            casos = await casosRepository.findByStatus(status);
         } else if (q) {
-            casos = casosRepository.search(q);
+            casos = await casosRepository.search(q);
         } else {
-            casos = casosRepository.findAll();
+            casos = await casosRepository.findAll();
         }
 
         res.status(200).json(casos);
@@ -66,24 +68,21 @@ function getCasoById(req, res, next) {
     handleGetById(casosRepository, 'Caso', req, res, next);
 }
 
-function getAgenteFromCaso(req, res, next) {
+async function getAgenteFromCaso(req, res, next) {
     try {
         const { caso_id } = req.params;
-
-        if (!validateUUID(caso_id)) {
-            throw createValidationError('Parâmetros inválidos', { caso_id: 'caso_id deve ser um UUID válido' });
+        const parsed = Number(caso_id);
+        if (!Number.isInteger(parsed) || parsed <= 0) {
+            throw createValidationError('Parâmetros inválidos', { caso_id: 'caso_id deve ser um inteiro positivo' });
         }
-
-        const caso = casosRepository.findById(caso_id);
+        const caso = await casosRepository.findById(parsed);
         if (!caso) {
             throw createNotFoundError('Caso não encontrado');
         }
-
-        const agente = agentesRepository.findById(caso.agente_id);
+        const agente = await agentesRepository.findById(caso.agente_id);
         if (!agente) {
             throw createNotFoundError('Agente responsável não encontrado');
         }
-
         res.status(200).json(agente);
     } catch (error) {
         next(error);
@@ -91,49 +90,43 @@ function getAgenteFromCaso(req, res, next) {
 }
 
 function createCaso(req, res, next) {
-    const validateCreate = (dados) => {
-        validateCasoData(dados, agentesRepository, false);
+    const validateCreate = async (dados) => {
+        await validateCasoData(dados, agentesRepository, false);
     };
-    
     handleCreate(casosRepository, validateCreate, req, res, next);
 }
 
 function updateCaso(req, res, next) {
-    const validateWithAgentes = (dados, isUpdate) => {
-        validateCasoData(dados, agentesRepository, isUpdate);
+    const validateWithAgentes = async (dados, isUpdate) => {
+        await validateCasoData(dados, agentesRepository, isUpdate);
     };
-    
     handleUpdate(casosRepository, validateWithAgentes, req, res, next);
 }
 
 function patchCaso(req, res, next) {
-    const validatePatch = (dados) => {
-        // Para PATCH, só validar campos que estão presentes
+    const validatePatch = async (dados) => {
         const errors = {};
-        
         if (dados.status) {
             const statusError = validateCasoStatus(dados.status);
             if (statusError) {
                 errors.status = statusError;
             }
         }
-        
-        if (dados.agente_id) {
-            if (!validateUUID(dados.agente_id)) {
-                errors.agente_id = 'agente_id deve ser um UUID válido';
+        if (dados.agente_id !== undefined) {
+            const parsed = Number(dados.agente_id);
+            if (!Number.isInteger(parsed) || parsed <= 0) {
+                errors.agente_id = 'agente_id deve ser um inteiro positivo';
             } else {
-                const agente = agentesRepository.findById(dados.agente_id);
+                const agente = await agentesRepository.findById(parsed);
                 if (!agente) {
                     throw createNotFoundError('Agente não encontrado');
                 }
             }
         }
-        
         if (Object.keys(errors).length > 0) {
             throw createValidationError('Parâmetros inválidos', errors);
         }
     };
-    
     handlePatch(casosRepository, validatePatch, req, res, next);
 }
 

@@ -1,4 +1,4 @@
-const { createValidationError, createNotFoundError, validateRequiredFields, validateDateFormat, validateUUID, validateCasoStatus } = require('./errorHandler');
+const { createValidationError, createNotFoundError, validateRequiredFields, validateDateFormat, validateCasoStatus } = require('./errorHandler');
 
 function validateAgenteData(dados, isUpdate = false) {
     const errors = {};
@@ -34,7 +34,7 @@ function validateAgenteData(dados, isUpdate = false) {
     }
 }
 
-function validateCasoData(dados, agentesRepository, isUpdate = false) {
+async function validateCasoData(dados, agentesRepository, isUpdate = false) {
     const errors = {};
     
     const requiredFields = ['titulo', 'descricao', 'status', 'agente_id'];
@@ -50,11 +50,12 @@ function validateCasoData(dados, agentesRepository, isUpdate = false) {
         }
     }
 
-    if (dados.agente_id) {
-        if (!validateUUID(dados.agente_id)) {
-            errors.agente_id = 'agente_id deve ser um UUID válido';
+    if (dados.agente_id !== undefined) {
+        const parsed = Number(dados.agente_id);
+        if (!Number.isInteger(parsed) || parsed <= 0) {
+            errors.agente_id = 'agente_id deve ser um inteiro positivo';
         } else {
-            const agente = agentesRepository.findById(dados.agente_id);
+            const agente = await agentesRepository.findById(parsed);
             if (!agente) {
                 throw createNotFoundError('Agente não encontrado');
             }
@@ -67,6 +68,6 @@ function validateCasoData(dados, agentesRepository, isUpdate = false) {
 }
 
 module.exports = {
-    validateAgenteData,
-    validateCasoData
-}; 
+  validateAgenteData,
+  validateCasoData,
+};

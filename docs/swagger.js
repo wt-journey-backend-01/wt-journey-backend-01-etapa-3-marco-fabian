@@ -26,9 +26,8 @@ const options = {
                     required: ['nome', 'dataDeIncorporacao', 'cargo'],
                     properties: {
                         id: {
-                            type: 'string',
-                            format: 'uuid',
-                            description: 'ID único do agente'
+                            type: 'integer',
+                            description: 'ID do agente (gerado automaticamente)'
                         },
                         nome: {
                             type: 'string',
@@ -52,9 +51,8 @@ const options = {
                     required: ['titulo', 'descricao', 'status', 'agente_id'],
                     properties: {
                         id: {
-                            type: 'string',
-                            format: 'uuid',
-                            description: 'ID único do caso'
+                            type: 'integer',
+                            description: 'ID do caso (gerado automaticamente)'
                         },
                         titulo: {
                             type: 'string',
@@ -70,8 +68,7 @@ const options = {
                             description: 'Status do caso'
                         },
                         agente_id: {
-                            type: 'string',
-                            format: 'uuid',
+                            type: 'integer',
                             description: 'ID do agente responsável'
                         }
                     }

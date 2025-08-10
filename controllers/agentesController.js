@@ -3,7 +3,7 @@ const { createValidationError, validateDateFormat } = require('../utils/errorHan
 const { validateAgenteData } = require('../utils/validators');
 const { handleCreate, handleUpdate, handlePatch, handleGetById, handleDelete } = require('../utils/controllerHelpers');
 
-function getAllAgentes(req, res, next) {
+async function getAllAgentes(req, res, next) {
     try {
         const { cargo, sort } = req.query;
         let agentes;
@@ -27,7 +27,7 @@ function getAllAgentes(req, res, next) {
         }
 
         if (cargo && sort) {
-            agentes = agentesRepository.findByCargo(cargo);
+            agentes = await agentesRepository.findByCargo(cargo);
             const order = sort.startsWith('-') ? 'desc' : 'asc';
             agentes = agentes.sort((a, b) => {
                 const dateA = new Date(a.dataDeIncorporacao);
@@ -35,12 +35,12 @@ function getAllAgentes(req, res, next) {
                 return order === 'desc' ? dateB - dateA : dateA - dateB;
             });
         } else if (cargo) {
-            agentes = agentesRepository.findByCargo(cargo);
+            agentes = await agentesRepository.findByCargo(cargo);
         } else if (sort) {
             const order = sort.startsWith('-') ? 'desc' : 'asc';
-            agentes = agentesRepository.findAllSorted(order);
+            agentes = await agentesRepository.findAllSorted(order);
         } else {
-            agentes = agentesRepository.findAll();
+            agentes = await agentesRepository.findAll();
         }
 
         res.status(200).json(agentes);

@@ -1,73 +1,56 @@
-const { v4: uuidv4 } = require('uuid');
+const db = require('../db/db');
 
-const casos = [];
-
-function findAll() {
-    return casos;
+async function findAll() {
+  return db('casos').select('*');
 }
 
-function findById(id) {
-    return casos.find(caso => caso.id === id);
+async function findById(id) {
+  return db('casos').where({ id }).first();
 }
 
-function create(caso) {
-    const novoCaso = {
-        id: uuidv4(),
-        ...caso
-    };
-    casos.push(novoCaso);
-    return novoCaso;
+async function create(caso) {
+  const rows = await db('casos').insert(caso).returning('*');
+  return rows[0];
 }
 
-function updateById(id, dadosAtualizados) {
-    const index = casos.findIndex(caso => caso.id === id);
-    if (index === -1) return null;
-    
-    casos[index] = { id, ...dadosAtualizados };
-    return casos[index];
+async function updateById(id, dadosAtualizados) {
+  const rows = await db('casos').where({ id }).update(dadosAtualizados).returning('*');
+  return rows[0] || null;
 }
 
-function patchById(id, dadosAtualizados) {
-    const index = casos.findIndex(caso => caso.id === id);
-    if (index === -1) return null;
-    
-    const { id: _, ...dadosSemId } = dadosAtualizados;
-    casos[index] = { ...casos[index], ...dadosSemId };
-    return casos[index];
+async function patchById(id, dadosAtualizados) {
+  const rows = await db('casos').where({ id }).update(dadosAtualizados).returning('*');
+  return rows[0] || null;
 }
 
-function deleteById(id) {
-    const index = casos.findIndex(caso => caso.id === id);
-    if (index === -1) return false;
-    
-    casos.splice(index, 1);
-    return true;
+async function deleteById(id) {
+  const deleted = await db('casos').where({ id }).del();
+  return deleted > 0;
 }
 
-function findByAgenteId(agente_id) {
-    return casos.filter(caso => caso.agente_id === agente_id);
+async function findByAgenteId(agente_id) {
+  return db('casos').where({ agente_id });
 }
 
-function findByStatus(status) {
-    return casos.filter(caso => caso.status.toLowerCase() === status.toLowerCase());
+async function findByStatus(status) {
+  return db('casos').whereRaw('LOWER(status) = LOWER(?)', [status]);
 }
 
-function search(query) {
-    const queryLower = query.toLowerCase();
-    return casos.filter(caso => 
-        caso.titulo.toLowerCase().includes(queryLower) || 
-        caso.descricao.toLowerCase().includes(queryLower)
-    );
+async function search(query) {
+  const like = `%${query}%`;
+  return db('casos')
+    .whereILike('titulo', like)
+    .orWhereILike('descricao', like);
 }
 
 module.exports = {
-    findAll,
-    findById,
-    create,
-    updateById,
-    patchById,
-    deleteById,
-    findByAgenteId,
-    findByStatus,
-    search
-}; 
+  findAll,
+  findById,
+  create,
+  updateById,
+  patchById,
+  deleteById,
+  findByAgenteId,
+  findByStatus,
+  search,
+};

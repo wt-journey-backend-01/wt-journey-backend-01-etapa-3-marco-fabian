@@ -1,73 +1,49 @@
-const { v4: uuidv4 } = require('uuid');
+const db = require('../db/db');
 
-const agentes = [];
-
-function findAll() {
-    return agentes;
+async function findAll() {
+  return db('agentes').select('*');
 }
 
-function findById(id) {
-    return agentes.find(agente => agente.id === id);
+async function findById(id) {
+  return db('agentes').where({ id }).first();
 }
 
-function create(agente) {
-    const novoAgente = {
-        id: uuidv4(),
-        ...agente
-    };
-    agentes.push(novoAgente);
-    return novoAgente;
+async function create(agente) {
+  const rows = await db('agentes').insert(agente).returning('*');
+  return rows[0];
 }
 
-function updateById(id, dadosAtualizados) {
-    const index = agentes.findIndex(agente => agente.id === id);
-    if (index === -1) return null;
-    
-    agentes[index] = { id, ...dadosAtualizados };
-    return agentes[index];
+async function updateById(id, dadosAtualizados) {
+  const rows = await db('agentes').where({ id }).update(dadosAtualizados).returning('*');
+  return rows[0] || null;
 }
 
-function patchById(id, dadosAtualizados) {
-    const index = agentes.findIndex(agente => agente.id === id);
-    if (index === -1) return null;
-    
-    const { id: _, ...dadosSemId } = dadosAtualizados;
-    agentes[index] = { ...agentes[index], ...dadosSemId };
-    return agentes[index];
+async function patchById(id, dadosAtualizados) {
+  const rows = await db('agentes').where({ id }).update(dadosAtualizados).returning('*');
+  return rows[0] || null;
 }
 
-function deleteById(id) {
-    const index = agentes.findIndex(agente => agente.id === id);
-    if (index === -1) return false;
-    
-    agentes.splice(index, 1);
-    return true;
+async function deleteById(id) {
+  const deleted = await db('agentes').where({ id }).del();
+  return deleted > 0;
 }
 
-function findByCargo(cargo) {
-    return agentes.filter(agente => agente.cargo.toLowerCase() === cargo.toLowerCase());
+async function findByCargo(cargo) {
+  return db('agentes').whereRaw('LOWER(cargo) = LOWER(?)', [cargo]);
 }
 
-function findAllSorted(order = 'asc') {
-    const agentesCopy = [...agentes];
-    return agentesCopy.sort((a, b) => {
-        const dateA = new Date(a.dataDeIncorporacao);
-        const dateB = new Date(b.dataDeIncorporacao);
-        
-        if (order === 'desc') {
-            return dateB - dateA;
-        }
-        return dateA - dateB;
-    });
+async function findAllSorted(order = 'asc') {
+  const direction = order === 'desc' ? 'desc' : 'asc';
+  return db('agentes').select('*').orderBy('dataDeIncorporacao', direction);
 }
 
 module.exports = {
-    findAll,
-    findById,
-    create,
-    updateById,
-    patchById,
-    deleteById,
-    findByCargo,
-    findAllSorted
-}; 
+  findAll,
+  findById,
+  create,
+  updateById,
+  patchById,
+  deleteById,
+  findByCargo,
+  findAllSorted,
+};
